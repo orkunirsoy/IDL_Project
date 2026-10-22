@@ -1,0 +1,63 @@
+# Baselines
+
+`common.py` contains the shared `.fjs` reader, a schedule feasibility checker, and dispatch logic. Every method should return the same schedule shape as CP-SAT: `schedule[job][operation] = [one_based_machine_id, start_time]`.
+
+Each rule has its own script and uses `common.py` for the data and schedule semantics:
+
+```bash
+python3 baselines/spt.py data/SD_original/8x4/test --output baselines/results/spt_8x4_test.csv
+python3 baselines/fifo.py data/SD_original/8x4/test --output baselines/results/fifo_8x4_test.csv
+python3 baselines/mor.py data/SD_original/8x4/test --output baselines/results/mor_8x4_test.csv
+python3 baselines/mwkr.py data/SD_original/8x4/test --output baselines/results/mwkr_8x4_test.csv
+python3 baselines/random_dispatch.py data/SD_original/8x4/test --seed 0 --output baselines/results/random_8x4_test_seed0.csv
+```
+
+Each rule chooses among the next unscheduled operations of unfinished jobs. Machine choice is always earliest completion (ties: earliest start, then machine ID). FIFO chooses the earliest ready job; SPT chooses the shortest chosen processing time; MOR chooses the job with most operations left; MWKR chooses the job with the largest sum of fastest eligible times for remaining operations. Random chooses a job uniformly from the ready jobs using a local seed. Deterministic ties then use start/end and job ID. The checker verifies eligibility, job order, machine overlap, and makespan before writing a result.
+
+The CSV contains one row per instance with makespan, available CP-SAT reference, reference status, percentage gap, runtime, and feasibility. A gap to `FEASIBLE` CP-SAT output is relative to an incumbent; only `OPTIMAL` is a proven optimum. Runtime measures the dispatch routine alone, not file reading or validation.
+
+Run scripts from the repository root. Recreate the private summary and comparison chart with `python3 scripts/compare_baselines.py` after generating the 8×4 and 10×5 CSVs.
+
+To compare complete schedules for one illustrative instance, run `python3 scripts/visualize_method_comparison.py`. It writes a PNG and PDF with CP-SAT, MWKR, seeded random dispatch, and SPT on the same time axis.
+
+To refresh all five midterm folders after adding CP-SAT results, run `python3 scripts/run_midterm_baselines.py` and then `python3 scripts/summarize_reference_coverage.py`.
+
+## Evolutionary search
+
+`evolutionary.py` implements a standard single-objective GA and a biased random-key GA (BRKGA) with `pymoo`. Each operation has a priority key and a machine-choice key. The decoder repeatedly selects the next available operation of a job and appends it to the selected eligible machine, so it always returns a feasible schedule. Each population starts with FIFO, MOR, MWKR, and SPT solutions, plus random chromosomes. Both algorithms use a population of 40 and the same schedule-evaluation budget.
+
+Run the five midterm sets with three seeds and 1,000 evaluations per instance:
+
+```bash
+python3 scripts/run_evolutionary_baselines.py --n-eval 1000 --seeds 3
+python3 scripts/compare_all_methods.py
+python3 scripts/visualize_evolutionary_comparison.py
+```
+
+The CSVs record each run's makespan, CP-SAT comparison, number of evaluations, runtime, and feasibility. These genetic baselines optimize makespan only.
+
+## Two-objective evolutionary search
+
+`multiobjective.py` adds NSGA-II and MOEA/D using the same decoder, four dispatch seeds, population size 40, and 1,000-evaluation budget. They minimize makespan and maximize GOAL-style normalized temporal slack, `R = sum(LS - ES) / makespan`. Earliest and latest starts are computed on the graph induced by the selected machine order and job precedence, using that schedule's makespan as the deadline. Thus R measures room to shift operations **within the current routing/order**; it is a structural slack proxy, not measured recovery after a breakdown.
+
+```bash
+python3 scripts/run_multiobjective_baselines.py --n-eval 1000 --seeds 3
+python3 scripts/compare_all_methods.py
+python3 scripts/visualize_evolutionary_comparison.py
+```
+
+Each run records its nondominated archive size and the achieved R of the archive member with the shortest makespan (ties: highest R). That member is used for the makespan comparison; it does not represent the full Pareto tradeoff. These data have no requested R targets, so GOAL's target-error metric `R (%)` cannot be reported. The private report in `docs_for_us` explains the comparison and is excluded from Git locally.
+
+## Pretrained DANIEL policy
+
+`daniel.py` evaluates the official [FJSP-DRL](https://github.com/wrqccc/FJSP-DRL) SD2 `10x5+mix` checkpoint with greedy decoding on our five sets. The external repository is kept separate. Our adapter uses CPU inference, converts `.fjs` files to the authors' matrix format, reconstructs every complete schedule, and checks it with `common.validate_schedule`. The policy is frozen; there is no retraining or fine-tuning on these test instances. Original 8×4, Original 10×5, SD1, and Brandimarte measure transfer away from the checkpoint's SD2 training family.
+
+```bash
+python3 -m pip install -r requirements-daniel.txt
+git clone https://github.com/wrqccc/FJSP-DRL.git /tmp/fjsp-daniel
+python3 scripts/run_daniel_baselines.py --upstream-root /tmp/fjsp-daniel
+python3 scripts/compare_all_methods.py
+python3 scripts/visualize_evolutionary_comparison.py
+```
+
+The greedy SD2 run reproduces the authors' saved per-instance makespans exactly (100/100). The five CSVs contain gaps and CPU runtime; matching JSONL files preserve and validate full schedules. This run used Python 3.12.8 and PyTorch 2.13.0 on an arm64 CPU, upstream revision `2cf81b13f5044451e78cf780f8fb3e7eeac054c1`, and checkpoint SHA-256 `326f763b6878a7c64b63c2a8ab5f06ce158b532d581a4d02dd39d68218274bcb`. Install DANIEL's small optional requirements separately from the project's main requirements.
