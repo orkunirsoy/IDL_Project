@@ -1,0 +1,11 @@
+rule,seed,instance,makespan,reference_makespan,reference_status,gap_percent,runtime_ms,feasible
+random,4,data/BenchData/Brandimarte/BrandimarteMk1.fjs,68,40,OPTIMAL,70.0,0.4127,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk10.fjs,372,223,FEASIBLE,66.8161,4.1146,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk2.fjs,45,26,OPTIMAL,73.0769,0.658,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk3.fjs,252,204,OPTIMAL,23.5294,2.0436,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk4.fjs,101,60,OPTIMAL,68.3333,0.8095,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk5.fjs,253,172,OPTIMAL,47.093,0.9979,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk6.fjs,106,61,FEASIBLE,73.7705,1.5468,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk7.fjs,230,141,FEASIBLE,63.1206,1.5944,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk8.fjs,608,523,OPTIMAL,16.2524,2.7558,True
+random,4,data/BenchData/Brandimarte/BrandimarteMk9.fjs,518,307,OPTIMAL,68.7296,3.5631,True

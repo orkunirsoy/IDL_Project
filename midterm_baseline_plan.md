@@ -36,16 +36,16 @@ The midterm rubric asks us to implement a baseline ourselves and to show results
 
 ### CP-SAT (done)
 
-CP-SAT is the exact solver from Google OR-Tools. It gives us the reference makespan that every other method is compared against. The solver is already implemented in `scripts/solve_instances.py`. You set `DATA_FOLDER` at the top of the file to a folder under `data/` (for example `"SD_original/10x5/test"`) and run it. It solves every `.fjs` file in that folder with a time limit of 600 seconds per instance, and writes one JSON file per instance under `CP-SAT/`, with the same path as the input:
+CP-SAT is the exact solver from Google OR-Tools. It gives us the reference makespan that every other method is compared against. The solver is implemented in `scripts/solve_instances.py`. Pass a folder under `data/`, a per-instance time limit, and `--skip-existing` to preserve earlier results; for example, `python3 scripts/solve_instances.py --data-folder SD_original/10x5/test --time-limit 10 --skip-existing`. The default time limit is 600 seconds. It writes one JSON file per instance under `CP-SAT/`, with the same path as the input:
 
 ```
 data/SD_original/10x5/test/test_0.fjs  ->  CP-SAT/SD_original/10x5/test/test_0.json
 data/BenchData/Brandimarte/BrandimarteMk1.fjs  ->  CP-SAT/BenchData/Brandimarte/BrandimarteMk1.json
 ```
 
-Each result file contains the makespan, the solver status (`OPTIMAL` if it proved optimality, `FEASIBLE` if it ran out of time first), and the full schedule as `[machine, start_time]` for every operation.
+Each result file contains the makespan, the solver status (`OPTIMAL` if it proved optimality, `FEASIBLE` if it found a schedule but could not prove optimality), and the full schedule as `[machine, start_time]` for every operation. Newly generated files also contain `wall_time_sec`, `time_limit_sec`, and `best_bound`; older files lack those fields.
 
-I will run CP-SAT on all five evaluation folders and push the results as they finish. Both `SD_original` test sets are already done, and all 200 instances were solved to proven optimality. The SD1, SD2, and Brandimarte runs are next. On the larger Brandimarte instances the solver may stop before proving optimality, so for those we will also report the published upper bound from `BenchDataSolution.csv`.
+All five evaluation folders now have CP-SAT schedules. Both `SD_original` test sets are 100/100 proven optimal. SD1 has 89/100 proven optimal, SD2 97/100, and Brandimarte 7/10; the rest are feasible incumbents from a 10-second run. The first 35 SD1 files predated this run and were already proven optimal. For Brandimarte, benchmark upper bounds should be reported separately from our CP-SAT incumbents. The local `BenchDataSolution.csv` lists Mk1 upper bound 39, but our solver proved 40 and the [SchedulingLab benchmark catalog](https://github.com/SchedulingLab/fjsp-instances/blob/main/instances.json) also lists 40 as the optimum, so that local bound should not be used without correction.
 
 ### Deep learning baselines
 
