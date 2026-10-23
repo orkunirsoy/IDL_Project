@@ -1,0 +1,92 @@
+{
+ "SD_original/10x5/test": {
+  "current": {
+   "instances": 100,
+   "gap_first_%": 61.030662885560275,
+   "gap_mean_%": 58.4741607521369,
+   "gap_best_%": 30.995858368457302,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6342800879478454
+  },
+  "nondelay": {
+   "instances": 100,
+   "gap_first_%": 30.963560852930527,
+   "gap_mean_%": 30.350891653240648,
+   "gap_best_%": 16.25961294870201,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6352993321418762
+  }
+ },
+ "SD_original/8x4/test": {
+  "current": {
+   "instances": 100,
+   "gap_first_%": 52.30361753000358,
+   "gap_mean_%": 50.89074737692532,
+   "gap_best_%": 25.02291875744197,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6624969744682312
+  },
+  "nondelay": {
+   "instances": 100,
+   "gap_first_%": 27.66089467640882,
+   "gap_mean_%": 27.07973202569037,
+   "gap_best_%": 13.697068890777311,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6632608103752137
+  }
+ },
+ "SD1_lit/10x5": {
+  "current": {
+   "instances": 100,
+   "gap_first_%": 54.50390303204687,
+   "gap_mean_%": 57.12774419993289,
+   "gap_best_%": 31.650723147892418,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6394268012046814
+  },
+  "nondelay": {
+   "instances": 100,
+   "gap_first_%": 29.393355461556407,
+   "gap_mean_%": 29.009949252491847,
+   "gap_best_%": 16.429485382168913,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6405606913566589
+  }
+ },
+ "SD2_lit/10x5+mix": {
+  "current": {
+   "instances": 100,
+   "gap_first_%": 58.12265099756625,
+   "gap_mean_%": 61.32895204227322,
+   "gap_best_%": 33.26531911891601,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6634434461593628
+  },
+  "nondelay": {
+   "instances": 100,
+   "gap_first_%": 32.925134964393536,
+   "gap_mean_%": 32.166547141731385,
+   "gap_best_%": 17.183760748181776,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.6646673941612243
+  }
+ },
+ "BenchData/Brandimarte": {
+  "current": {
+   "instances": 10,
+   "gap_first_%": 74.40456836500672,
+   "gap_mean_%": 76.4106600908414,
+   "gap_best_%": 50.58590105553564,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.7093159675598144
+  },
+  "nondelay": {
+   "instances": 10,
+   "gap_first_%": 22.506900542461242,
+   "gap_mean_%": 22.012874060617005,
+   "gap_best_%": 14.227288991578996,
+   "feasible_%": 100.0,
+   "seconds_per_instance": 0.713632321357727
+  }
+ }
+}

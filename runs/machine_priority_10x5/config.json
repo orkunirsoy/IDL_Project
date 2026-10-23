@@ -1,0 +1,33 @@
+{
+ "RUN_NAME": "machine_priority_10x5",
+ "TRAIN_SETS": [
+  "SD_original/10x5"
+ ],
+ "EVAL_SETS": [
+  "SD_original/10x5/test",
+  "SD_original/8x4/test",
+  "SD1_lit/10x5",
+  "SD2_lit/10x5+mix",
+  "BenchData/Brandimarte"
+ ],
+ "HIDDEN": 128,
+ "LAYERS": 8,
+ "PRIORITY_BINS": 64,
+ "T": 1000,
+ "SAMPLE_STEPS": 50,
+ "EPOCHS": 100,
+ "BATCH_SIZE": 32,
+ "LR": 0.0005,
+ "WEIGHT_DECAY": 0.0001,
+ "PRIORITY_WEIGHT": 1.0,
+ "EVAL_EVERY": 10,
+ "VAL_SAMPLES": 4,
+ "VAL_LIMIT": 50,
+ "SAMPLES": 16,
+ "DECODERS": [
+  "current",
+  "nondelay"
+ ],
+ "SEED": 0,
+ "DEVICE": "cuda"
+}
