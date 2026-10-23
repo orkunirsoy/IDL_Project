@@ -53,3 +53,20 @@ python3 scripts/run_daniel_baselines.py --upstream-root /tmp/fjsp-daniel
 ```
 
 The greedy SD2 run reproduces the authors' saved per-instance makespans exactly (100/100). The five CSVs contain gaps and CPU runtime; matching JSONL files preserve and validate full schedules. This run used Python 3.12.8 and PyTorch 2.13.0 on an arm64 CPU, upstream revision `2cf81b13f5044451e78cf780f8fb3e7eeac054c1`, and checkpoint SHA-256 `326f763b6878a7c64b63c2a8ab5f06ce158b532d581a4d02dd39d68218274bcb`. Install DANIEL's small optional requirements separately from the project's main requirements.
+
+## Pretrained Song policy
+
+`song.py` evaluates the official [fjsp-drl](https://github.com/songwenas12/fjsp-drl) `model/save_10_5.pt` checkpoint with greedy decoding on the same five sets. The external repository is kept separate. Our adapter uses CPU inference, converts `.fjs` instances to the authors' environment, reconstructs every complete schedule, and checks it with `common.validate_schedule`. The policy is frozen; there is no retraining or fine-tuning on these test instances. Results on our generated data, SD2, and Brandimarte measure transfer away from the checkpoint's training distribution.
+
+```bash
+python3 -m pip install -r requirements-song.txt
+git clone https://github.com/songwenas12/fjsp-drl.git /tmp/fjsp-song
+git -C /tmp/fjsp-song checkout d7637b70029be6cb8fe78e450dcb07767876daea
+python3 scripts/run_song_baselines.py --upstream-root /tmp/fjsp-song
+```
+
+The five CSVs contain gaps and CPU runtime; matching JSONL files preserve and validate full schedules. Runtime includes environment initialization and greedy inference after a warm-up, excluding model loading, `.fjs` reading/conversion, export, and independent validation. CPU timings were collected on a different machine from the archived DANIEL results, so they should not be used as a controlled speed comparison. The notebook includes Song in the same makespan-gap plots and aligned Gantt comparison as the other methods.
+
+The upstream time-transition method transposes the machine table before applying a machine mask, which corrupts finish times or fails when the machine count differs from the feature count on current PyTorch. The adapter overrides that method with the same event transition and corrected machine-axis indexing. It also uses tensor-native completed-machine indices. The authors' weights and source checkout are unchanged; these results use the corrected environment rather than claiming an exact reproduction of upstream `test.py`. The upstream script's NVIDIA monitoring and Excel export are not needed.
+
+This run used Python 3.12.7, PyTorch 2.14.0+cpu, NumPy 1.26.4, and Gym 0.26.2 on Windows x86-64, upstream revision `d7637b70029be6cb8fe78e450dcb07767876daea`, and checkpoint SHA-256 `594f93a9f9838f89bf508297b3019ebaae8a0482a6f3abf91a3be7412198f0ce`. Install Song's optional requirements in a separate environment. Run each authors' adapter in its own process because their source repositories use overlapping module names.

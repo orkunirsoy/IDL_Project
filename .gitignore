@@ -2,3 +2,5 @@
 
 __pycache__/
 *.pyc
+/IDL_Proj_env
+/.vscode

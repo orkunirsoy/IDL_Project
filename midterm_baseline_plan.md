@@ -57,6 +57,8 @@ DRL (Song et al., 2023) represents the current state of the schedule as a graph 
 - Code: https://github.com/songwenas12/fjsp-drl
 - Evaluation script: `test.py`, with the trained models in `model/`.
 
+Our adapter is now `baselines/song.py`, with `scripts/run_song_baselines.py` evaluating the frozen `save_10_5.pt` checkpoint greedily on all five folders. CSV results and independently validated full schedules are saved under `baselines/results/song_*`. The adapter corrects an upstream machine-indexing issue in the time transition; see `baselines/README.md` for the reproduction command and environment details.
+
 DANIEL (Wang et al., 2024) replaces the graph network with a dual attention network, one set of attention blocks for operations and one for machines, and is also trained with PPO. The paper reports better results than DRL, especially on SD2, where processing times vary more.
 
 - Paper: R. Wang, G. Wang, J. Sun, F. Deng, and J. Chen, "Flexible Job Shop Scheduling via Dual Attention Network-Based Reinforcement Learning," IEEE Transactions on Neural Networks and Learning Systems, 2024.
