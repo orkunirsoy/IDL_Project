@@ -1,0 +1,11 @@
+rule,seed,instance,makespan_mean,makespan_best,reference_makespan,reference_status,gap_mean_percent,gap_best_percent,runtime_ms,evaluations,feasible
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk1.fjs,45.1875,43,40,OPTIMAL,12.9687,7.5,2033.0391,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk10.fjs,229.5,221,208,FEASIBLE,10.3365,6.25,11876.4051,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk2.fjs,30.4375,28,26,OPTIMAL,17.0673,7.6923,2106.0581,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk3.fjs,208.125,204,204,OPTIMAL,2.0221,0.0,6098.211,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk4.fjs,72.3125,68,60,OPTIMAL,20.5208,13.3333,3490.4608,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk5.fjs,178.625,176,172,OPTIMAL,3.8517,2.3256,3989.0036,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk6.fjs,86.3125,78,59,FEASIBLE,46.2924,32.2034,6534.3975,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk7.fjs,149,145,139,OPTIMAL,7.1942,4.3165,3949.9511,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk8.fjs,523.0625,523,523,OPTIMAL,0.012,0.0,10225.4445,16,True
+daniel,sample16,data/BenchData/Brandimarte/BrandimarteMk9.fjs,331.4375,322,307,OPTIMAL,7.9601,4.886,11106.259,16,True

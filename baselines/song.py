@@ -11,6 +11,7 @@ import json
 import math
 import sys
 from pathlib import Path
+from statistics import mean
 from time import perf_counter
 
 try:
@@ -103,7 +104,7 @@ def integer(value):
     return int(value)
 
 
-def solve(instance, policy, env_class, env_paras):
+def solve(instance, policy, env_class, env_paras, sample=False):
     import torch
 
     case = FjspCase(instance)
@@ -117,7 +118,7 @@ def solve(instance, policy, env_class, env_paras):
             raise ValueError("Song environment finished before scheduling every operation")
         with torch.inference_mode():
             actions = policy.act(env.state, None, env.done_batch,
-                                 flag_sample=False, flag_train=False)
+                                 flag_sample=sample, flag_train=False)
         env.step(actions)
     elapsed_ms = (perf_counter() - start_time) * 1000
     if not bool(env.done_batch.all()):
@@ -144,7 +145,9 @@ def solve(instance, policy, env_class, env_paras):
 
 
 def run_folder(data_dir, upstream_root, checkpoint, output, schedules_output,
-               reference_root=Path("CP-SAT")):
+               reference_root=Path("CP-SAT"), samples=1):
+    if samples < 1:
+        raise ValueError("samples must be positive")
     policy, env_class, env_paras = load_policy(upstream_root, checkpoint)
     paths = sorted(Path(data_dir).glob("*.fjs"))
     if not paths:
@@ -157,20 +160,44 @@ def run_folder(data_dir, upstream_root, checkpoint, output, schedules_output,
     with schedules_output.open("w") as schedule_stream:
         for number, path in enumerate(paths, 1):
             instance = read_fjs(path)
-            result, runtime_ms = solve(instance, policy, env_class, env_paras)
             key = path.resolve().relative_to(ROOT).as_posix()
             reference_path = (reference_root / path.resolve().relative_to(
                 ROOT / "data")).with_suffix(".json")
             reference = json.loads(reference_path.read_text())
-            rows.append({
-                "rule": "song", "seed": "pretrained-greedy", "instance": key,
-                "makespan": result["makespan"],
-                "reference_makespan": reference["makespan"],
-                "reference_status": reference["status"],
-                "gap_percent": round(100 * (result["makespan"] / reference["makespan"] - 1), 4),
-                "runtime_ms": round(runtime_ms, 4), "evaluations": 1,
-                "feasible": True,
-            })
+            if samples == 1:
+                result, runtime_ms = solve(instance, policy, env_class, env_paras)
+                rows.append({
+                    "rule": "song", "seed": "pretrained-greedy", "instance": key,
+                    "makespan": result["makespan"],
+                    "reference_makespan": reference["makespan"],
+                    "reference_status": reference["status"],
+                    "gap_percent": round(100 * (result["makespan"] / reference["makespan"] - 1), 4),
+                    "runtime_ms": round(runtime_ms, 4), "evaluations": 1,
+                    "feasible": True,
+                })
+            else:
+                import torch
+                torch.manual_seed(0)
+                draws = []
+                runtime_ms = 0.0
+                for _ in range(samples):
+                    result, elapsed_ms = solve(instance, policy, env_class, env_paras,
+                                               sample=True)
+                    draws.append(result)
+                    runtime_ms += elapsed_ms
+                result = min(draws, key=lambda item: item["makespan"])
+                makespan_mean = mean(item["makespan"] for item in draws)
+                rows.append({
+                    "rule": "song", "seed": f"sample{samples}", "instance": key,
+                    "makespan_mean": round(makespan_mean, 4),
+                    "makespan_best": result["makespan"],
+                    "reference_makespan": reference["makespan"],
+                    "reference_status": reference["status"],
+                    "gap_mean_percent": round(100 * (makespan_mean / reference["makespan"] - 1), 4),
+                    "gap_best_percent": round(100 * (result["makespan"] / reference["makespan"] - 1), 4),
+                    "runtime_ms": round(runtime_ms, 4), "evaluations": samples,
+                    "feasible": True,
+                })
             schedule_stream.write(json.dumps({"instance": key, **result}) + "\n")
             if number % 10 == 0 or number == len(paths):
                 print(f"Song {number}/{len(paths)}", flush=True)

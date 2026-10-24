@@ -10,6 +10,7 @@ import csv
 import json
 import sys
 from pathlib import Path
+from statistics import mean
 from time import perf_counter
 
 try:
@@ -54,7 +55,7 @@ def as_arrays(instance):
     return job_lengths, op_times
 
 
-def solve(instance, policy, env_class):
+def solve(instance, policy, env_class, sample=False):
     import numpy as np
     import torch
 
@@ -76,7 +77,10 @@ def solve(instance, policy, env_class):
                 dynamic_pair_mask=state.dynamic_pair_mask_tensor,
                 fea_pairs=state.fea_pairs_tensor,
             )
-        action = int(torch.argmax(probabilities, dim=1).item())
+        if sample:
+            action = int(torch.multinomial(probabilities[0], 1).item())
+        else:
+            action = int(torch.argmax(probabilities, dim=1).item())
         job, machine = divmod(action, instance["n_machines"])
         op = int(env.candidate[0, job] - offsets[job])
         start = max(env.true_candidate_free_time[0, job],
@@ -93,7 +97,9 @@ def solve(instance, policy, env_class):
 
 
 def run_folder(data_dir, upstream_root, checkpoint, output, schedules_output,
-               reference_root=Path("CP-SAT")):
+               reference_root=Path("CP-SAT"), samples=1):
+    if samples < 1:
+        raise ValueError("samples must be positive")
     policy, env_class = load_policy(upstream_root, checkpoint)
     paths = sorted(Path(data_dir).glob("*.fjs"))
     if not paths:
@@ -106,20 +112,43 @@ def run_folder(data_dir, upstream_root, checkpoint, output, schedules_output,
     with schedules_output.open("w") as schedule_stream:
         for number, path in enumerate(paths, 1):
             instance = read_fjs(path)
-            result, runtime_ms = solve(instance, policy, env_class)
             key = str(path.resolve().relative_to(Path.cwd().resolve()))
             reference_path = (reference_root / path.resolve().relative_to(
                 Path("data").resolve())).with_suffix(".json")
             reference = json.loads(reference_path.read_text())
-            rows.append({
-                "rule": "daniel", "seed": "pretrained-greedy", "instance": key,
-                "makespan": result["makespan"],
-                "reference_makespan": reference["makespan"],
-                "reference_status": reference["status"],
-                "gap_percent": round(100 * (result["makespan"] / reference["makespan"] - 1), 4),
-                "runtime_ms": round(runtime_ms, 4), "evaluations": 1,
-                "feasible": True,
-            })
+            if samples == 1:
+                result, runtime_ms = solve(instance, policy, env_class)
+                rows.append({
+                    "rule": "daniel", "seed": "pretrained-greedy", "instance": key,
+                    "makespan": result["makespan"],
+                    "reference_makespan": reference["makespan"],
+                    "reference_status": reference["status"],
+                    "gap_percent": round(100 * (result["makespan"] / reference["makespan"] - 1), 4),
+                    "runtime_ms": round(runtime_ms, 4), "evaluations": 1,
+                    "feasible": True,
+                })
+            else:
+                import torch
+                torch.manual_seed(0)
+                draws = []
+                runtime_ms = 0.0
+                for _ in range(samples):
+                    result, elapsed_ms = solve(instance, policy, env_class, sample=True)
+                    draws.append(result)
+                    runtime_ms += elapsed_ms
+                result = min(draws, key=lambda item: item["makespan"])
+                makespan_mean = mean(item["makespan"] for item in draws)
+                rows.append({
+                    "rule": "daniel", "seed": f"sample{samples}", "instance": key,
+                    "makespan_mean": round(makespan_mean, 4),
+                    "makespan_best": result["makespan"],
+                    "reference_makespan": reference["makespan"],
+                    "reference_status": reference["status"],
+                    "gap_mean_percent": round(100 * (makespan_mean / reference["makespan"] - 1), 4),
+                    "gap_best_percent": round(100 * (result["makespan"] / reference["makespan"] - 1), 4),
+                    "runtime_ms": round(runtime_ms, 4), "evaluations": samples,
+                    "feasible": True,
+                })
             schedule_stream.write(json.dumps({"instance": key, **result}) + "\n")
             if number % 10 == 0 or number == len(paths):
                 print(f"DANIEL {number}/{len(paths)}", flush=True)

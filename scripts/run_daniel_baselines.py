@@ -24,13 +24,15 @@ DATASETS = [
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--upstream-root", type=Path, required=True)
+    parser.add_argument("--samples", type=int, default=1)
     args = parser.parse_args()
     checkpoint = args.upstream_root / "trained_network/SD2/10x5+mix.pth"
+    suffix = "" if args.samples == 1 else f"_sample{args.samples}"
     for folder, tag in DATASETS:
-        csv_path = ROOT / "baselines/results" / f"daniel_{tag}.csv"
-        schedules = ROOT / "baselines/results" / f"daniel_{tag}_schedules.jsonl"
+        csv_path = ROOT / "baselines/results" / f"daniel_{tag}{suffix}.csv"
+        schedules = ROOT / "baselines/results" / f"daniel_{tag}{suffix}_schedules.jsonl"
         run_folder(ROOT / "data" / folder, args.upstream_root, checkpoint,
-                   csv_path, schedules, ROOT / "CP-SAT")
+                   csv_path, schedules, ROOT / "CP-SAT", args.samples)
 
 
 if __name__ == "__main__":
